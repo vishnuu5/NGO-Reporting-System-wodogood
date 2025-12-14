@@ -7,16 +7,10 @@ export const getDashboardData = async (req, res) => {
     if (!month) {
       return res.status(400).json({ error: "Month parameter is required" });
     }
-
-    // Validate month format
     if (!/^\d{4}-\d{2}$/.test(month)) {
       return res.status(400).json({ error: "Month must be in YYYY-MM format" });
     }
-
-    // Get all reports for the specified month
     const reports = await Report.find({ month });
-
-    // Calculate aggregated data
     const totalNGOs = reports.length;
     const totalPeopleHelped = reports.reduce(
       (sum, report) => sum + report.peopleHelped,
@@ -30,8 +24,6 @@ export const getDashboardData = async (req, res) => {
       (sum, report) => sum + report.fundsUtilized,
       0
     );
-
-    // Get breakdown by NGO
     const ngoBreakdown = reports.map((report) => ({
       ngoId: report.ngoId,
       peopleHelped: report.peopleHelped,

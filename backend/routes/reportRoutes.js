@@ -9,7 +9,6 @@ import {
 
 const router = express.Router();
 
-// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -29,13 +28,11 @@ const upload = multer({
   },
 });
 
-// Create uploads directory if it doesn't exist
 import fs from "fs";
 if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
 }
 
-// Routes
 router.post("/report", submitReport);
 router.post("/reports/upload", upload.single("file"), uploadBulkReports);
 router.get("/job-status/:jobId", getJobStatus);

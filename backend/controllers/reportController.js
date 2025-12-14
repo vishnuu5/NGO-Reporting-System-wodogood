@@ -4,13 +4,10 @@ import { v4 as uuidv4 } from "uuid";
 import { parse } from "csv-parse";
 import fs from "fs";
 
-// Submit a single report
 export const submitReport = async (req, res) => {
   try {
     const { ngoId, month, peopleHelped, eventsConducted, fundsUtilized } =
       req.body;
-
-    // Validate required fields
     if (
       !ngoId ||
       !month ||
@@ -20,24 +17,17 @@ export const submitReport = async (req, res) => {
     ) {
       return res.status(400).json({ error: "All fields are required" });
     }
-
-    // Validate month format (YYYY-MM)
     if (!/^\d{4}-\d{2}$/.test(month)) {
       return res.status(400).json({ error: "Month must be in YYYY-MM format" });
     }
-
-    // Validate numeric values
     if (peopleHelped < 0 || eventsConducted < 0 || fundsUtilized < 0) {
       return res
         .status(400)
         .json({ error: "Numeric values must be non-negative" });
     }
-
-    // Check if report already exists (idempotency)
     const existingReport = await Report.findOne({ ngoId, month });
 
     if (existingReport) {
-      // Update existing report instead of creating duplicate
       existingReport.peopleHelped = peopleHelped;
       existingReport.eventsConducted = eventsConducted;
       existingReport.fundsUtilized = fundsUtilized;
@@ -48,8 +38,6 @@ export const submitReport = async (req, res) => {
         report: existingReport,
       });
     }
-
-    // Create new report
     const report = new Report({
       ngoId,
       month,
@@ -69,8 +57,6 @@ export const submitReport = async (req, res) => {
     res.status(500).json({ error: "Failed to submit report" });
   }
 };
-
-// Upload CSV file for bulk reports
 export const uploadBulkReports = async (req, res) => {
   try {
     if (!req.file) {
@@ -79,21 +65,15 @@ export const uploadBulkReports = async (req, res) => {
 
     const jobId = uuidv4();
     const filePath = req.file.path;
-
-    // Create job record
     const job = new Job({
       jobId,
       status: "pending",
     });
     await job.save();
-
-    // Return job ID immediately
     res.status(202).json({
       message: "File uploaded successfully. Processing started.",
       jobId,
     });
-
-    // Process file asynchronously
     processCSVFile(filePath, jobId);
   } catch (error) {
     console.error("Error uploading file:", error);
@@ -101,7 +81,6 @@ export const uploadBulkReports = async (req, res) => {
   }
 };
 
-// Get job status
 export const getJobStatus = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -118,8 +97,6 @@ export const getJobStatus = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch job status" });
   }
 };
-
-// Process CSV file asynchronously
 async function processCSVFile(filePath, jobId) {
   try {
     const job = await Job.findOne({ jobId });
@@ -151,7 +128,7 @@ async function processCSVFile(filePath, jobId) {
 
     for (let i = 0; i < records.length; i++) {
       const record = records[i];
-      const rowNumber = i + 2; // +2 because header is row 1 and array is 0-indexed
+      const rowNumber = i + 2;
 
       try {
         // Validate required fields
@@ -164,8 +141,6 @@ async function processCSVFile(filePath, jobId) {
         ) {
           throw new Error("Missing required fields");
         }
-
-        // Validate month format
         if (!/^\d{4}-\d{2}$/.test(record.month)) {
           throw new Error("Invalid month format. Use YYYY-MM");
         }
@@ -186,21 +161,17 @@ async function processCSVFile(filePath, jobId) {
         if (peopleHelped < 0 || eventsConducted < 0 || fundsUtilized < 0) {
           throw new Error("Numeric values must be non-negative");
         }
-
-        // Check for existing report (idempotency)
         const existingReport = await Report.findOne({
           ngoId: record.ngoId,
           month: record.month,
         });
 
         if (existingReport) {
-          // Update existing report
           existingReport.peopleHelped = peopleHelped;
           existingReport.eventsConducted = eventsConducted;
           existingReport.fundsUtilized = fundsUtilized;
           await existingReport.save();
         } else {
-          // Create new report
           await Report.create({
             ngoId: record.ngoId,
             month: record.month,
@@ -230,8 +201,6 @@ async function processCSVFile(filePath, jobId) {
         await job.save();
       }
     }
-
-    // Mark job as completed
     job.status = failedCount === records.length ? "failed" : "completed";
     job.processedRows = processedCount;
     job.successCount = successCount;
