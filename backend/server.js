@@ -14,7 +14,7 @@ connectDB();
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://your-frontend-name.vercel.app",
+  "https://ngo-reporting-system-wodogood.vercel.app",
 ];
 
 app.use(
