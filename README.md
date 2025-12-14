@@ -64,16 +64,18 @@ A full-stack web application that enables NGOs to submit monthly impact reports 
 
 ## Demo Links
 
+[View Demo](https://ngo-reporting-system-wodogood.vercel.app)
+
 - **Frontend**:
 
 ```bash
-
+https://ngo-reporting-system-wodogood.vercel.app
 ```
 
 - **Backend API**:
 
 ```bash
-
+https://ngo-reporting-system-wodogood-backend.onrender.com
 ```
 
 - **GitHub Repository**:
